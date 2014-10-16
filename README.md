@@ -7,3 +7,7 @@ Ein IRC-Bot, der für Drama sorgt. Basiert auf dem [dramabot der GNAA](https://g
 * Semi-zufällig auf Nachrichten reagieren
 * Leute verabschieden
 * Reaktionen basieren auf der "Laune", die durch verschiedene Ereignisse besser oder schlechter wird
+
+Voraussetzungen: 
+
+``npm install irc sleep``

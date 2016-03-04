@@ -15,6 +15,7 @@ var config = {
 
 var sleep = require('sleep');
 var irc = require('irc');
+var request = require('request');
 
 var verwirrtes = ["ups", "oh hi", "oh oh...", "na sowas", "oh.. du warst nicht gemeint", "oh.. hi", "argh, mist", "oh scheisse", "oh verdammt", "wenn man vom teufel spricht", "gutes timing", "hm, das ist jetzt unangenehm", "oh, peinlich.."];
 var gruesse = ["hi", "hallo", "tag", "moin", "mahlzeit", "tach", "hallo fans"];
@@ -186,41 +187,64 @@ function begruessen(ziel, person) {
     }
 }
 
-function reagieren(ziel, nachricht) {
-    var antwortboese = reaktionboese[Math.floor(Math.random() * reaktionboese.length)];
-    var antwortlieb = reaktionlieb[Math.floor(Math.random() * reaktionlieb.length)];
-
-    if (Math.random() < 0.1) {
-        if (laune < 0) {
-            if (laune < 0) {
-                sleep.sleep(2);
-                bot.say(ziel, antwortboese);
-                laune = laune + (100 * Math.random());
-            } else {
-                sleep.sleep(2);
-                bot.say(ziel, antwortlieb);
-                laune = laune - (100 * Math.random());
-            }
-        }
+function getRandomWikiTitle(prefix, callback) {
+  request('http://de.wikipedia.org/wiki/Spezial:Zuf%C3%A4llige_Seite', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var regex = '.*<title>(.*) – Wikipedia</title>.*'
+      var result = body.match(regex);
+      var statusNumber = result[1];
+      return callback(prefix, statusNumber);
     }
+    return '';
+  });
+}
 
-    if (nachricht.indexOf(config.botName) > -1) {
+function reagieren(ziel, nachricht) {
+    var regex = '!begruesze (.*)'
+    var result = nachricht.match(regex);
+    if(result != null) {
+      var name = result[1];
+      var greeting = 'TT' + name.substring(0,1) + ', SIE '
+      getRandomWikiTitle(greeting, function(prefix, title) {
+        sleep.sleep(1);
+        bot.say(ziel, prefix.toUpperCase() + title.toUpperCase() + '!');
+        console.log(prefix.toUpperCase() + title + '!');
+      });
+    } else {
+      var antwortboese = reaktionboese[Math.floor(Math.random() * reaktionboese.length)];
+      var antwortlieb = reaktionlieb[Math.floor(Math.random() * reaktionlieb.length)];
+
+      if (Math.random() < 0.1) {
+        if (laune < 0) {
+          if (laune < 0) {
+            sleep.sleep(2);
+            bot.say(ziel, antwortboese);
+            laune = laune + (100 * Math.random());
+          } else {
+            sleep.sleep(2);
+            bot.say(ziel, antwortlieb);
+            laune = laune - (100 * Math.random());
+          }
+        }
+      }
+
+      if (nachricht.indexOf(config.botName) > -1) {
         if (nachricht.indexOf("wie geht") == -1) {
 
-            if (laune < 0) {
-                sleep.sleep(2);
-                bot.say(ziel, antwortboese);
-            } else {
-                sleep.sleep(2);
-                bot.say(ziel, antwortlieb);
-            }
-        } else {
+          if (laune < 0) {
             sleep.sleep(2);
-            bot.say(ziel, verbalLaune(laune));
-            laune = laune - 5;
+            bot.say(ziel, antwortboese);
+          } else {
+            sleep.sleep(2);
+            bot.say(ziel, antwortlieb);
+          }
+        } else {
+          sleep.sleep(2);
+          bot.say(ziel, verbalLaune(laune));
+          laune = laune - 5;
         }
-    }
-
+      }
+  }
 }
 
 

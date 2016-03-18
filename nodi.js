@@ -17,7 +17,8 @@ var sleep = require('sleep');
 var irc = require('irc');
 var request = require('request');
 var fs = require('fs');
-var YQL = require('yql');
+//var YQL = require('yql');
+var weather = require('openweathermap')
 
 var verwirrtes = ["ups", "oh hi", "oh oh...", "na sowas", "oh.. du warst nicht gemeint", "oh.. hi", "argh, mist", "oh scheisse", "oh verdammt", "wenn man vom teufel spricht", "gutes timing", "hm, das ist jetzt unangenehm", "oh, peinlich.."];
 var gruesse = ["hi", "hallo", "tag", "moin", "mahlzeit", "tach", "hallo fans"];
@@ -205,29 +206,29 @@ function begruessen(ziel, person) {
 function getWeather(requestor, to, message) {
   var index = Math.floor((Math.random() * boa.length-1));  
   var title = boa[index].toUpperCase();
-  var check = message.split('');
+  var check = message.split(' ');
   var abfrage = message.substring(message.indexOf(' ')+1)
   if(check.length == 1) {
     bot.say(to, requestor +', verarschen koennen Sie sich selbst, SIE ' + title + '!');
     return;
   }
-  console.log(abfrage);
-  var woeidQuery = new YQL('SELECT woeid FROM geo.places where text=@city LIMIT 1').setParam('city', abfrage);
-  woeidQuery.exec(function(err, data) {
-    if(data.query.results != null) {
-      var query = new YQL('select * from weather.forecast where (woeid=@woi) AND u="c"').setParam('woi', data.query.results.place.woeid);
-      query.exec(function(err, data) {
-        var location = data.query.results.channel.location;
-        var condition = data.query.results.channel.item.condition;
-        var region = location.region == null || location.region.length == 0 ? '' : ', ' + location.region;
-        bot.say(to, requestor +', in ' + location.city + region + ' sind es gerade ' + condition.temp + ' Grad, SIE ' + title + '!' +
-                ' Der Inselaffe beschreibt die Wetterlage als "' + condition.text + '"');
-        console.log(requestor +', in ' + location.city + region + ' sind es gerade ' + condition.temp + ' Grad, SIE ' + title + '!');
-      });
-    } else {
-      bot.say(to, requestor +', ' + abfrage + ' ist gar keine Stadt, SIE ' + title + '!');
+  var cfg = {units: 'metric', lang: 'de', mode: 'json', APPID : 'a83e93e4c9dba881856bc57eb0c32edc', q: abfrage};
+  weather.now(cfg, function(err, json) {
+    if(json['main'] == null) {
+      bot.say(to, requestor +', sowas gibts gar nicht, SIE ' + title + '!');
+      return;
     }
-  }); 
+    var str = requestor +', in ' + json['name'] + ' sind es gerade ' + json['main']['temp'] + ' Grad, SIE ' + title + '!' +
+                ' Die API beschreibt die Wetterlage als "' + json['weather'][0]['description'] + '". '
+    if('rain' in json && '3h' in json['rain']) {
+      str = str + "Die naechsten drei Stunden fallen " + json['rain']['3h'] + "mm Regen."
+    } else if('snow' in json && '3h' in json['snow']) {
+      str = str + "Die naechsten drei Stunden fallen " + json['snow']['3h'] + "mm Schnee."
+    } else {
+      str = str + "Die naechsten drei Stunden gibts angeblich keinen Niederschlag."
+    }
+    bot.say(to, str); 
+  });
 }
 
 function getRandomWikiTitle(prefix, callback) {

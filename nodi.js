@@ -3,7 +3,7 @@
 var config = {
     userName: "nodi",
     realName: "geh weg",
-    channels: ["#stipkas"],
+    channels: ["#clafoutis"],
     server: "irc.iz-smart.net",
     botName: "nodi",
     port: 6697,
@@ -16,12 +16,14 @@ var config = {
 var sleep = require('sleep');
 var irc = require('irc');
 var request = require('request');
+var fs = require('fs');
+var YQL = require('yql');
 
 var verwirrtes = ["ups", "oh hi", "oh oh...", "na sowas", "oh.. du warst nicht gemeint", "oh.. hi", "argh, mist", "oh scheisse", "oh verdammt", "wenn man vom teufel spricht", "gutes timing", "hm, das ist jetzt unangenehm", "oh, peinlich.."];
 var gruesse = ["hi", "hallo", "tag", "moin", "mahlzeit", "tach", "hallo fans"];
 var boeseabschiede = ["und tschüss", "na endlich", "plötzlich riechts hier viel besser", "na also", "endlich weg", "auf nimmerwiedersehen", "dieser typ...", "ja, hau doch ab", "ja, geh doch", "genau, raus hier"];
 var liebeabschiede = ["och :(", "verlass mich noch nicht :(", "schade", "oh nein :(", "bleib doch hier!", "wohin gehst du so schnell? :(", "ach schade", "den mag ich", "neeeein :("];
-
+var boa = fs.readFileSync("boarisch.txt").toString().split("\n");
 
 var beleidigungen = [
     " ist so ein depp",
@@ -47,7 +49,10 @@ var beleidigungen = [
     " kann mich mal kreuzweise",
     " mangelt es an esprit",
     " hat hier gar nichts zu melden",
-    " braucht gar nicht mehr angekrochen zu kommen"
+    " braucht gar nicht mehr angekrochen zu kommen",
+    " Wann i sog i kauf des Kinderwagl, dann kauf i des Kinderwagl, do gibt's kane Wiaschtln!",
+    " Ja auf goa koan Foi, wo dengst‘n du hi du Hoibdepp du dahauda, wia kimmst’n auf sowos, oiso wirkli!",
+    " Kimm du mia blos ned aso, wei sunst kimm i dia abfikatisch!"
 ]; 
 
 var lobe = [
@@ -112,6 +117,15 @@ var reaktionboese = [
     "schwein...",
     "-.-",
     "D:",
+    "%, Mein Wort als Metaller ist mehr wert, als alle Diamanten der Weld",
+    "Nun jungs da könnt ihr noch Lange übern ich bin ein zimlich extremer hetbanger und auch wen ich jetzt seit fast 4 monerten nur ein oder zwei mal gebangt habe habe ich doch vor einem Jahr fast jeden Freitag und Samstag geheadbangt aber habe trozdem genik schmerzen gehabt",
+    "%, es gibt nicht zu jung, es gibt nur zu eng" ,
+    "%, hädde Columbus Amerika nie entdeckt, wären Indianer heute sowas wie Elfen",
+    "%, was ist schwerer ein gramm federn oder ein gramm eisen? Federn sind schwerer, wobei es auf den grundgedanken ankommt.",
+    "%, ich bezweifle das man Kondome Normen kann. Kondome bestehen aus Latex einem Big samen und elastischen material. Genormte Sachen bestehen dagegen aus Festen und nicht so leicht zu verformenden material wie Eisen. Also ich weiß nicht wo du deine Kondome kaufst aber ich würde mir kein Metal Kondom überziehen das ding ist scheiß kalt.",
+    "Brot kann scheissen, was könnt ihr?",
+    "Selbstmord mach ich, wenn deine Mutter tot vor mir liegt und sagt 'Ficken?'",
+    "%, ich werde mich nun hinlegen und werde die königin so positzioniren das du ihn ihre votze kannst aber ich auch ferstest du"
 ];
 
 var reaktionlieb = [
@@ -127,7 +141,8 @@ var reaktionlieb = [
     "du bist so lieb <3",
     "erzähl mir mehr davon :)",
     "du bist einer der wenigen vernünftigen hier :)",
-    "ich glaube ich mag dich :)"
+    "ich glaube ich mag dich :)",
+    "%, Hass kann aber durch etwas geheilt werden: Liebe, Zuneigung, Freundschaft." 
 ];
 
 var laune = -10;
@@ -187,6 +202,34 @@ function begruessen(ziel, person) {
     }
 }
 
+function getWeather(requestor, to, message) {
+  var index = Math.floor((Math.random() * boa.length-1));  
+  var title = boa[index].toUpperCase();
+  var check = message.split('');
+  var abfrage = message.substring(message.indexOf(' ')+1)
+  if(check.length == 1) {
+    bot.say(to, requestor +', verarschen koennen Sie sich selbst, SIE ' + title + '!');
+    return;
+  }
+  console.log(abfrage);
+  var woeidQuery = new YQL('SELECT woeid FROM geo.places where text=@city LIMIT 1').setParam('city', abfrage);
+  woeidQuery.exec(function(err, data) {
+    if(data.query.results != null) {
+      var query = new YQL('select * from weather.forecast where (woeid=@woi) AND u="c"').setParam('woi', data.query.results.place.woeid);
+      query.exec(function(err, data) {
+        var location = data.query.results.channel.location;
+        var condition = data.query.results.channel.item.condition;
+        var region = location.region == null || location.region.length == 0 ? '' : ', ' + location.region;
+        bot.say(to, requestor +', in ' + location.city + region + ' sind es gerade ' + condition.temp + ' Grad, SIE ' + title + '!' +
+                ' Der Inselaffe beschreibt die Wetterlage als "' + condition.text + '"');
+        console.log(requestor +', in ' + location.city + region + ' sind es gerade ' + condition.temp + ' Grad, SIE ' + title + '!');
+      });
+    } else {
+      bot.say(to, requestor +', ' + abfrage + ' ist gar keine Stadt, SIE ' + title + '!');
+    }
+  }); 
+}
+
 function getRandomWikiTitle(prefix, callback) {
   request('http://de.wikipedia.org/wiki/Spezial:Zuf%C3%A4llige_Seite', function (error, response, body) {
     if (!error && response.statusCode == 200) {
@@ -199,21 +242,73 @@ function getRandomWikiTitle(prefix, callback) {
   });
 }
 
-function reagieren(ziel, nachricht) {
-    var regex = '!begruesze (.*)'
+function getPhrase(callback) {
+  request('http://sprichwortrekombinator.de/', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var regex = '.*<div class="spwort">(.*)</div>.*'
+      var result = body.match(regex);
+      var phrase = result[1];
+      return callback(phrase);
+    }
+      return '';
+  });
+}
+
+function isPhrase(ziel, nachricht) {
+    if(nachricht.startsWith("!sprichwort")) {
+      getPhrase(function(phrase) {
+        sleep.sleep(1);
+        bot.say(ziel, phrase);
+        console.log(phrase);
+      });
+      return true;
+    }
+    return false;
+}
+
+function greeting(to, message) {
+  var res = message.split(/[\s,]+/); 
+  for(var i = 0; i < res.length; i++) {
+    var isBoarisch = Math.floor((Math.random() * 100));
+    console.log("1: " + isBoarisch);
+    isBoarisch = isBoarisch %2;
+    var greeting = 'TT' + res[i].substring(0,1) + ', ';
+    console.log("2: " + isBoarisch);
+    if (isBoarisch > 0) {
+      greeting = (greeting + "SE ").toUpperCase();
+      var index = Math.floor((Math.random() * boa.length-1));  
+      var title = boa[index].toUpperCase();
+      bot.say(to, greeting + title + '!');
+      console.log(greeting + title + '!');
+    } else {
+      greeting = (greeting + "SIE ").toUpperCase();
+      getRandomWikiTitle(greeting, function(prefix, title) {
+          sleep.sleep(1);
+          title = title.toUpperCase();
+          bot.say(to, prefix + title + '!');
+          console.log(prefix + title + '!');
+          });
+    }
+  }
+}
+
+function reagieren(absender, ziel, nachricht) {
+    var regex = '^!begruesze (.*)'
     var result = nachricht.match(regex);
     if(result != null) {
-      var name = result[1];
-      var greeting = 'TT' + name.substring(0,1) + ', SIE '
-      getRandomWikiTitle(greeting, function(prefix, title) {
-        sleep.sleep(1);
-        bot.say(ziel, prefix.toUpperCase() + title.toUpperCase() + '!');
-        console.log(prefix.toUpperCase() + title + '!');
-      });
+      greeting(ziel, result[1]);
+    } else if(nachricht.startsWith("!wetter")) {
+      getWeather(absender, ziel, nachricht);
+    } else if(isPhrase(ziel, nachricht)) {
     } else {
       var antwortboese = reaktionboese[Math.floor(Math.random() * reaktionboese.length)];
       var antwortlieb = reaktionlieb[Math.floor(Math.random() * reaktionlieb.length)];
-
+      if(antwortboese.startsWith("%")) {
+        antwortboese = absender + antwortboese.substring(1); 
+      }
+      if(antwortlieb.startsWith("%")) {
+        antwortlieb = absender + antwortlieb.substring(1); 
+      }
       if (Math.random() < 0.1) {
         if (laune < 0) {
           if (laune < 0) {
@@ -263,7 +358,7 @@ bot.addListener("join", function(channel, who) {
 });
 
 bot.addListener("message", function(from, to, text, message) {
-    reagieren(to,text); 
+    reagieren(from, to,text); 
 });
 
 bot.addListener("kick", function(channel, nick, by, reason, message) {

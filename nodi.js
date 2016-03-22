@@ -138,7 +138,7 @@ bot.addListener("join", function(channel, who) {
 });
 
 bot.addListener("message", function(from, to, text, message) {
-    reagieren(from, to,text); 
+    reagieren(from, to, text); 
 });
 
 bot.addListener("kick", function(channel, nick, by, reason, message) {

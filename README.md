@@ -10,4 +10,4 @@ Ein IRC-Bot, der für Drama sorgt. Basiert auf dem [dramabot der GNAA](https://g
 
 Voraussetzungen: 
 
-``npm install irc sleep request openweathermap``
+``npm install``

@@ -1,0 +1,19 @@
+{
+  "name": "NodiBot",
+  "version": "1.0.0",
+  "description": "IRC Drama-Bot.",
+  "license": "MIT",
+  "author": {
+    "name": "-"
+  },
+  "scripts": {
+    "start": "node nodi"
+  },
+  "dependencies": {
+    "irc":"latest",
+    "sleep":"latest",
+    "request":"latest",
+    "openweathermap":"latest",
+    "random-js": "latest"
+  }
+}

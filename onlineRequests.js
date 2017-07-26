@@ -24,3 +24,38 @@ exports.getPhrase = function(callback) {
   });
 }
 
+exports.getOnAir = function(callback) {
+  request('http://soundportal.at/service/now-on-air/', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      var regex = '.*<td class="titel">(.*)</td>.*'
+      var regex2 = '.*<td class="interpret">(.*)</td>.*'
+      var regex3 = '.*<div id="header_nowonair_moderator"><img src="/fileadmin/tx_sendungen/(.*).png" alt="Moderator" width="115" height="121"></div>.*'
+      var result = body.match(regex);
+      var result2 = body.match(regex2);
+      var result3 = body.match(regex3);
+      var onAir = result3[1];
+      var map = {
+        "wb" : "Dr. Nachtstrom",
+        "af" : "Antonia Fabian",
+        "am" : "Andreas Meinhart",
+        "bj" : "Bettina Jannach",
+        "pm" : "Patrick Möstl",
+        "cs" : "Christoph Scheibelhofer",
+        "mm" : "Magdalena Mayer",
+        "sm" : "Susanne Müller",
+        "aw" : "Anna Wagner",
+        "csc" : "Clemens Spaghetti"
+      };
+
+      if (map[onAir]) {
+        onAir = map[onAir];
+      } else {
+        onAir = "KENN ICH NICHT, SIE HUPE!";
+      }
+      var phrase = result[1] + " von " + result2[1] + " [im Studio: " + onAir +"]";
+      return callback(phrase);
+    }
+    return '';
+  });
+}
+

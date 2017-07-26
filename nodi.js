@@ -49,6 +49,18 @@ function isPhrase(ziel, nachricht) {
     return false;
 }
 
+function isOnAir(ziel, nachricht) {
+    if(nachricht.startsWith("!soundportal")) {
+      onlineRequests.getOnAir(function(phrase) {
+        sleep.sleep(1);
+        bot.say(ziel, phrase);
+        console.log(phrase);
+      });
+      return true;
+    }
+    return false;
+}
+
 function greeting(to, message) {
   var res = message.split(/[\s,]+/).filter(function(n) { return n.trim() != ''}); 
   if(res.length == 0) {
@@ -148,6 +160,7 @@ function reagieren(absender, ziel, nachricht) {
       bot.say(ziel, str + text);
     });
   } else if(isPhrase(ziel, nachricht)) {
+  } else if(isOnAir(ziel, nachricht)) {
   } else {
     drama.dramaFunc(absender, config.botName, nachricht, function(msg) {
       bot.say(ziel, msg);

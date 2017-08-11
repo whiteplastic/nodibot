@@ -44,7 +44,9 @@ exports.getOnAir = function(callback) {
         "mm" : "Magdalena Mayer",
         "sm" : "Susanne Müller",
         "aw" : "Anna Wagner",
-        "csc" : "Clemens Spaghetti"
+        "bjcsc" : "Bettina Jannach & Clemens Scarpatetti",
+        "csc" : "Clemens Scarpatetti",
+        "hst" : "Heysze Sommerspuren"
       };
 
       if (map[onAir]) {

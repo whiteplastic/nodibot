@@ -10,10 +10,10 @@
     "start": "node nodi"
   },
   "dependencies": {
-    "irc":"latest",
-    "sleep":"latest",
-    "request":"latest",
-    "openweathermap":"latest",
-    "random-js": "latest"
+    "irc": "latest",
+    "openweathermap": "latest",
+    "random-js": "latest",
+    "request": "^2.81.0",
+    "sleep": "^5.1.1"
   }
 }

@@ -13,7 +13,11 @@ var config = {
     autoRejoin: true
 };
 
-var sleep = require('sleep');
+function sleep(s) {
+  return new Promise(resolve => setTimeout(resolve, s * 1000));
+}
+
+var Promise = require('bluebird');
 var irc = require('irc');
 var random = require('random-js')();
 var drama = require("./drama.js");
@@ -40,8 +44,10 @@ bot.addListener("motd", function(motd) {
 function isPhrase(ziel, nachricht) {
     if(nachricht.startsWith("!sprichwort")) {
       onlineRequests.getPhrase(function(phrase) {
-        sleep.sleep(1);
-        bot.say(ziel, phrase);
+        sleep(1)
+          .then(function() {
+            bot.say(ziel, phrase);
+          });
         console.log(phrase);
       });
       return true;
@@ -52,8 +58,10 @@ function isPhrase(ziel, nachricht) {
 function isOnAir(ziel, nachricht) {
     if(nachricht.startsWith("!soundportal")) {
       onlineRequests.getOnAir(function(phrase) {
-        sleep.sleep(1);
-        bot.say(ziel, phrase);
+        sleep(1)
+          .then(function() {
+            bot.say(ziel, phrase);
+          });
         console.log(phrase);
       });
       return true;
@@ -80,10 +88,12 @@ function greeting(to, message) {
     //} else {
     greeting = (greeting + "SIE ").toUpperCase();
     onlineRequests.getRandomWikiTitle(greeting, function(prefix, title) {
-      sleep.sleep(1);
-      title = title.toUpperCase();
-      bot.say(to, prefix + title + '!');
-      console.log(prefix + title + '!');
+      sleep(1)
+        .then(function() {
+          title = title.toUpperCase();
+          bot.say(to, prefix + title + '!');
+          console.log(prefix + title + '!');
+        });
     });
     //}
   }
@@ -117,8 +127,10 @@ function getReason(first, callback) {
 function getWarning(callback) {
   var warningNum = (Math.floor(Math.random()*warnings.list.length));
   var warning = "ACHTYNG: " + warnings.list[warningNum];
-  sleep.sleep(2);
-  callback(warning);
+  sleep(2)
+    .then(function() {
+      callback(warning);
+    });
 }
 
 function reagieren(absender, ziel, nachricht) {

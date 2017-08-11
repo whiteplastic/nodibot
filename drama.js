@@ -1,5 +1,5 @@
 var drama = require('./resources/drama.json');
-var sleep = require('sleep');
+var Promise = require('bluebird');
 
 var laune = -10;
 
@@ -9,6 +9,10 @@ function verbalLaune(laune) {
     } else {
         return "gut";
     }
+}
+
+function sleep(s) {
+  return new Promise(resolve => setTimeout(resolve, s * 1000));
 }
 
 exports.join = function(say) {
@@ -39,10 +43,16 @@ exports.begruessen = function (person, botname, say) {
         default:
             if (Math.random() > 0.5) {
                 if (laune < 0) {
-                    sleep.sleep(2);
-                    say(start + person + beleidigung);
-                    sleep.sleep(3);
-                    say(oops);
+                  sleep(2)
+                    .then(function() {
+                      say(start + person + beleidigung)
+                    })
+                    .then(function() {
+                      return sleep(3);
+                    })
+                    .then(function () {
+                      say(oops);
+                    })
                     laune = laune + (100 * Math.random());
                 } else {
                     say(start + person + liebe);
@@ -65,12 +75,17 @@ exports.dramaFunc = function (absender, botname, nachricht, say) {
   if (Math.random() < 0.1) {
     if (laune < 0) {
       if (laune < 0) {
-        sleep.sleep(2);
-        say(antwortboese);
+        sleep(2)
+          .then(function() {
+            say(antwortboese);
+          })
         laune = laune + (100 * Math.random());
       } else {
-        sleep.sleep(2);
-        say(antwortlieb);
+        sleep(2)
+          .then(function() {
+            say(antwortlieb);
+          })
+
         laune = laune - (100 * Math.random());
       }
     }
@@ -78,16 +93,22 @@ exports.dramaFunc = function (absender, botname, nachricht, say) {
   if (nachricht.indexOf(botname) > -1) {
     if (nachricht.indexOf("wie geht") == -1) {
       if (laune < 0) {
-        sleep.sleep(2);
-        say(antwortboese);
+        sleep(2)
+          .then(function() {
+            say(antwortboese);
+          })
       } else {
-        sleep.sleep(2);
-        say(antwortlieb);
+        sleep(2)
+          .then(function() {
+            say(antwortlieb);
+          })
       }
     } else {
-      sleep.sleep(2);
-      say(verbalLaune(laune));
-      laune = laune - 5;
+      sleep(2)
+        .then(function() {
+          say(verbalLaune(laune));
+          laune = laune - 5;
+        })
     }
   }
 }

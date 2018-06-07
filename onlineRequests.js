@@ -55,8 +55,8 @@ exports.getOnAir = function(callback) {
         "aw" : "Anna Wagner",
         "bjcsc" : "Bettina Jannach & Clemens Scarpatetti",
         "csc" : "Clemens Scarpatetti",
-        "hst" : "Heysze Sommerspuren"
-        "kf" : "Kathi Ferstl"
+        "hst" : "Heysze Sommerspuren",
+        "kf" : "Kathi Ferstl",
         "mf" : "Michael Fabian"
       };
 

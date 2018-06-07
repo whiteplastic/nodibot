@@ -62,6 +62,8 @@ exports.getOnAir = function(callback) {
 
       if (map[onAir]) {
         onAir = map[onAir];
+      } else if ("nightguider" === onAir) {
+        onAir = "Niemand, Sie armselige Schabe! Es läuft der Nightguider.";
       } else {
         onAir = "KENN ICH NICHT, SIE HUPE! (" + onAir + ")";
       }

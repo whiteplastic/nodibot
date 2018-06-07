@@ -24,6 +24,15 @@ exports.getPhrase = function(callback) {
   });
 }
 
+var umlauts = {"&auml;": "ä", "&uuml;":"ü", "&ouml;":"ö", "&Auml;": "Ä", "&Uuml;":"Ü", "&Ouml;":"Ö", "&szlig": "ß" }
+
+function conv(str) {
+  var reg = /&auml;|&uuml;|&ouml;|&Auml;|&Uuml;|&Ouml;|"&szlig"/g;
+  return str.replace(reg, function(matched){
+    return umlauts[matched];
+  });
+}
+
 exports.getOnAir = function(callback) {
   request('http://soundportal.at/service/now-on-air/', function (error, response, body) {
     if (!error && response.statusCode == 200) {
@@ -47,14 +56,18 @@ exports.getOnAir = function(callback) {
         "bjcsc" : "Bettina Jannach & Clemens Scarpatetti",
         "csc" : "Clemens Scarpatetti",
         "hst" : "Heysze Sommerspuren"
+        "kf" : "Kathi Ferstl"
+        "mf" : "Michael Fabian"
       };
 
       if (map[onAir]) {
         onAir = map[onAir];
       } else {
-        onAir = "KENN ICH NICHT, SIE HUPE!";
+        onAir = "KENN ICH NICHT, SIE HUPE! (" + onAir + ")";
       }
-      var phrase = result[1] + " von " + result2[1] + " [im Studio: " + onAir +"]";
+      var track = conv(result[1]);
+      var artist = conv(result2[1]);
+      var phrase = track + " von " + artist + " [im Studio: " + onAir +"]";
       return callback(phrase);
     }
     return '';
